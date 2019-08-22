@@ -64,6 +64,17 @@ const Vertex kVertices[4] = {{{-1.0, -1.0}, {0.0, 1.0}},  // bottom-left,
 - (id)initWithDevice:(id<MTLDevice>)device {
   if (self = [super init]) {
     _device = MTLCreateSystemDefaultDevice();
+
+    // Initializes teh vertex descriptor.
+    _vertexDescriptor = [MTLVertexDescriptor vertexDescriptor];
+    _vertexDescriptor.attributes[0].format = MTLVertexFormatFloat2;
+    _vertexDescriptor.attributes[0].bufferIndex = 0;
+    _vertexDescriptor.attributes[0].offset = 0;
+    _vertexDescriptor.attributes[1].format = MTLVertexFormatFloat2;
+    _vertexDescriptor.attributes[1].bufferIndex = 0;
+    _vertexDescriptor.attributes[1].offset = sizeof(float) * 2;
+    _vertexDescriptor.layouts[0].stride = sizeof(Vertex);
+    _vertexDescriptor.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
   }
   return self;
 }
@@ -165,6 +176,7 @@ const Vertex kVertices[4] = {{{-1.0, -1.0}, {0.0, 1.0}},  // bottom-left,
       newFunctionWithName:vertexFunctionName];
   pipelineStateDescriptor.colorAttachments[0].pixelFormat = \
       MTLPixelFormatRGBA8Unorm;
+  pipelineStateDescriptor.vertexDescriptor = _vertexDescriptor;
 
   MTLRenderPipelineColorAttachmentDescriptor* pipelineColorAttachment = \
       pipelineStateDescriptor.colorAttachments[0];

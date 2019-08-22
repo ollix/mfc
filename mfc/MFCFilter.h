@@ -30,6 +30,7 @@
   id<MTLLibrary> _library;
   id<MTLTexture> _tempTexture;
   id<MTLTexture> _texture;
+  MTLVertexDescriptor* _vertexDescriptor;
   vector_uint2 _viewPortSize;
 }
 

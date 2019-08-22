@@ -120,19 +120,19 @@
 #include <metal_stdlib>
 
 typedef struct {
-  float2 framebufferCoordinate;
-  float2 textureCoordinate;
+  vector_float2 framebufferCoordinate [[attribute(0)]];
+  vector_float2 textureCoordinate [[attribute(1)]];
 } Vertex;
 
 typedef struct {
-  float4 pos [[position]];
-  float2 textureCoordinate;
+  vector_float4 pos [[position]];
+  vector_float2 textureCoordinate;
 )");
 
   const int kNumberOfBlurCoordinates = 1 + (kNumberOfOptimizedOffsets * 2);
   for (int i = 0; i < kNumberOfBlurCoordinates; ++i) {
     shader_string.append(
-        "\n  float2 blurCoordinates" + std::to_string(i) + ";");
+        "\n  vector_float2 blurCoordinates" + std::to_string(i) + ";");
   }
 
     shader_string.append(R"(
@@ -146,16 +146,15 @@ typedef struct  {
 
   shader_string.append(R"(
 vertex RasterizerData vertexShader(
-    uint vertexID [[vertex_id]],
-    constant Vertex *vertices [[buffer(0)]],
+    Vertex vert [[stage_in]],
     constant Uniforms& uniforms [[buffer(1)]]) {
 
   RasterizerData out;
-  out.pos = float4(vertices[vertexID].framebufferCoordinate.xy, 0.0, 1.0);
-  out.textureCoordinate = vertices[vertexID].textureCoordinate;
+  out.pos = vector_float4(vert.framebufferCoordinate.xy, 0.0, 1.0);
+  out.textureCoordinate = vert.textureCoordinate;
 
-  float2 singleStepOffset = float2(uniforms.texelWidthOffset,
-                                   uniforms.texelHeightOffset);
+  vector_float2 singleStepOffset(uniforms.texelWidthOffset,
+                                 uniforms.texelHeightOffset);
 )");
 
   // Inner offset loop.
@@ -186,12 +185,13 @@ vertex RasterizerData vertexShader(
 
   // Fragment function.
   shader_string.append(R"(
-fragment float4 fragmentShader(RasterizerData in [[stage_in]],
-                               constant Uniforms& uniforms [[buffer(0)]],
-                               metal::texture2d<float> texture [[texture(0)]]) {
+fragment vector_float4 fragmentShader(
+    RasterizerData in [[stage_in]],
+    constant Uniforms& uniforms [[buffer(0)]],
+    metal::texture2d<float> texture [[texture(0)]]) {
   constexpr metal::sampler sampler (metal::mag_filter::linear,
                                     metal::min_filter::linear);
-  float4 sum = float4(0);
+  vector_float4 sum = vector_float4(0);
 )");
 
   // Inner texture loop.
@@ -235,8 +235,8 @@ fragment float4 fragmentShader(RasterizerData in [[stage_in]],
       kBlurRadius / 2 + (kBlurRadius % 2);
   if (kTruekNumberOfOptimizedOffsets > kNumberOfOptimizedOffsets) {
     shader_string.append(R"(
-  float2 singleStepOffset = float2(uniforms.texelWidthOffset,
-                                   uniforms.texelHeightOffset);)");
+  vector_float2 singleStepOffset(uniforms.texelWidthOffset,
+                                 uniforms.texelHeightOffset);)");
 
     const char* kInnerTextureLoopFormat = R"(
   sum += texture.sample(sampler, in.blurCoordinates0 + singleStepOffset * %f) * %f;
