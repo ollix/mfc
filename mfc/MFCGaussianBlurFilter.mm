@@ -18,6 +18,7 @@
 #import "mfc/MFCGaussianBlurFilter.h"
 
 #include <string>
+#include <vector>
 
 #import <Metal/Metal.h>
 
@@ -172,10 +173,10 @@ vertex RasterizerData vertexShader(
         snprintf(NULL, 0, kInnerOffsetLoopFormat, kFirstIndex,
                  kOptimizedGaussianOffset, kSecondIndex,
                  kOptimizedGaussianOffset) + 1;
-    char string[kStringLength];
-    snprintf(string, kStringLength, kInnerOffsetLoopFormat, kFirstIndex,
+    std::vector<char> string(kStringLength);
+    snprintf(string.data(), kStringLength, kInnerOffsetLoopFormat, kFirstIndex,
              kOptimizedGaussianOffset, kSecondIndex, kOptimizedGaussianOffset);
-    shader_string.append(string);
+    shader_string.append(string.data());
   }
 
   shader_string.append(R"(
@@ -200,10 +201,10 @@ fragment vector_float4 fragmentShader(
   const int kInnerTextureLoopFirstLineLength = \
       snprintf(NULL, 0, kInnerTextureLoopFirstLineFormat,
       standard_gaussian_weights[0]) + 1;
-  char inner_texture_loop_first_line[kInnerTextureLoopFirstLineLength];
-  snprintf(inner_texture_loop_first_line, kInnerTextureLoopFirstLineLength,
+  std::vector<char> inner_texture_loop_first_line(kInnerTextureLoopFirstLineLength);
+  snprintf(inner_texture_loop_first_line.data(), kInnerTextureLoopFirstLineLength,
            kInnerTextureLoopFirstLineFormat, standard_gaussian_weights[0]);
-  shader_string.append(inner_texture_loop_first_line);
+  shader_string.append(inner_texture_loop_first_line.data());
 
   const char* kInnerTextureLoopFormat = R"(
   sum += texture.sample(sampler, in.blurCoordinates%d) * %f;
@@ -223,10 +224,10 @@ fragment vector_float4 fragmentShader(
     const int kStringLength = snprintf(NULL, 0, kInnerTextureLoopFormat,
                                        kFirstIndex, kOptimizedWeight,
                                        kSecondIndex, kOptimizedWeight) + 1;
-    char string[kStringLength];
-    snprintf(string, kStringLength, kInnerTextureLoopFormat, kFirstIndex,
+    std::vector<char> string(kStringLength);
+    snprintf(string.data(), kStringLength, kInnerTextureLoopFormat, kFirstIndex,
              kOptimizedWeight, kSecondIndex, kOptimizedWeight);
-    shader_string.append(string);
+    shader_string.append(string.data());
   }
 
   // If the number of required samples exceeds the amount we can pass in via
@@ -258,11 +259,11 @@ fragment vector_float4 fragmentShader(
         const int kStringLength = \
             snprintf(NULL, 0, kInnerTextureLoopFormat, kOptimizedOffset,
                      kOptimizedWeight, kOptimizedOffset, kOptimizedWeight) + 1;
-        char string[kStringLength];
-        snprintf(string, kStringLength, kInnerTextureLoopFormat,
+        std::vector<char> string(kStringLength);
+        snprintf(string.data(), kStringLength, kInnerTextureLoopFormat,
                  kOptimizedOffset, kOptimizedWeight, kOptimizedOffset,
                  kOptimizedWeight);
-        shader_string.append(string);
+        shader_string.append(string.data());
       }
     }
   }
