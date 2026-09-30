@@ -110,17 +110,18 @@ const Vertex kVertices[4] = {{{-1.0, -1.0}, {0.0, 1.0}},  // bottom-left,
   _devicePixelRatio = devicePixelRatio;
   _texture = texture;
 
-  // Resets temporary texture if the size is different.
+  // Resets temporary texture if the size or channel format is different.
   if (_tempTexture != nil &&
       (_tempTexture.width != _viewPortSize.x ||
-       _tempTexture.height != _viewPortSize.y)) {
+       _tempTexture.height != _viewPortSize.y ||
+       _tempTexture.pixelFormat != texture.pixelFormat)) {
     _tempTexture = nil;
   }
 
   // Initializes the temporary texture.
   if (_tempTexture == nil) {
     MTLTextureDescriptor *textureDescriptor = [MTLTextureDescriptor
-        texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+        texture2DDescriptorWithPixelFormat:texture.pixelFormat
         width:_viewPortSize.x
         height:_viewPortSize.y
         mipmapped:NO];
@@ -174,14 +175,12 @@ const Vertex kVertices[4] = {{{-1.0, -1.0}, {0.0, 1.0}},  // bottom-left,
       newFunctionWithName:fragmentFunctionName];
   pipelineStateDescriptor.vertexFunction = [_library
       newFunctionWithName:vertexFunctionName];
-  pipelineStateDescriptor.colorAttachments[0].pixelFormat = \
-      MTLPixelFormatRGBA8Unorm;
   pipelineStateDescriptor.vertexDescriptor = _vertexDescriptor;
 
   MTLRenderPipelineColorAttachmentDescriptor* pipelineColorAttachment = \
       pipelineStateDescriptor.colorAttachments[0];
   pipelineColorAttachment.blendingEnabled = YES;
-  pipelineColorAttachment.pixelFormat = MTLPixelFormatRGBA8Unorm;
+  pipelineColorAttachment.pixelFormat = targetTexture.pixelFormat;
   pipelineColorAttachment.sourceRGBBlendFactor = sourceBlendFactor;
   pipelineColorAttachment.sourceAlphaBlendFactor = sourceBlendFactor;
   pipelineColorAttachment.destinationRGBBlendFactor = destinationBlendFactor;
